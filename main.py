@@ -5,7 +5,7 @@ from viz import test
 
 import env as custom_simple_spread
 
-env = custom_simple_spread.parallel_env(N=2, local_ratio=0)
+env = custom_simple_spread.parallel_env(N=2, local_ratio=0, shuffle=True)
 env = to_vec_env(env)
 
 # ppo = PPO.load("models/model.zip")
