@@ -12,7 +12,6 @@ env = to_vec_env(env)
 policy_kwargs = dict(
     features_extractor_class=CustomMeanEmbeddingsExtractor,
     features_extractor_kwargs=dict(
-        observation_space=env.observation_space,
         keys=list(env.observation_space.keys()),
         mean_keys={"entity_pos", "other_pos", "comm"}
     )

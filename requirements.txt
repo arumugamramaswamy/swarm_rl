@@ -1,3 +1,3 @@
-stable-baselines3==1.2.0
+stable-baselines3 @ git+https://github.com/arumugamramaswamy/stable-baselines3.git@afbd92ea2faa01da799fc9a591c25918f3759904
 gym==0.22.0
 PettingZoo==1.15.0
