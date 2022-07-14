@@ -5,7 +5,7 @@ from stable_baselines3.common.utils import get_latest_run_id
 from sb3_contrib.ppo_recurrent.ppo_recurrent import RecurrentPPO
 from sb3_contrib.ppo_recurrent.policies import MultiInputLstmPolicy
 
-from policy import CustomAttentionMeanEmbeddingsExtractor
+from policy import CustomAttentionMeanEmbeddingsExtractorSimpleSpread
 
 from to_vec_env import to_vec_env
 from viz import test
@@ -19,7 +19,7 @@ EVAL_DIR = "eval"
 EXP_NAME = "attention_embeddings"
 N = 3
 
-run_id = get_latest_run_id(TB_LOG_DIR, EXP_NAME)
+run_id = get_latest_run_id(TB_LOG_DIR, EXP_NAME) + 1
 run_name = f"{EXP_NAME}_{run_id}"
 eval_path = os.path.join(EVAL_DIR, run_name)
 
@@ -27,10 +27,10 @@ env = custom_simple_spread.parallel_env(N=N, local_ratio=0, shuffle=True)
 env = to_vec_env(env)
 
 policy_kwargs = dict(
-    features_extractor_class=CustomAttentionMeanEmbeddingsExtractor,
+    features_extractor_class=CustomAttentionMeanEmbeddingsExtractorSimpleSpread,
     features_extractor_kwargs=dict(
         keys=list(env.observation_space.keys()),
-        mean_keys={"entity_pos", "other_pos", "comm"}
+        embedding_size=8
     )
 )
 
