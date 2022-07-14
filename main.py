@@ -2,6 +2,9 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import EvalCallback
 from stable_baselines3.common.utils import get_latest_run_id
 
+from sb3_contrib.ppo_recurrent.ppo_recurrent import RecurrentPPO
+from sb3_contrib.ppo_recurrent.policies import MultiInputLstmPolicy
+
 from policy import CustomAttentionMeanEmbeddingsExtractor
 
 from to_vec_env import to_vec_env
@@ -46,10 +49,20 @@ eval_callback_kwargs = {
 
 eval_cb = EvalCallback(**eval_callback_kwargs)
 
-# ppo = PPO.load("models/model_2_me.zip")
-# ppo.env = env
-ppo = PPO("MultiInputPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=TB_LOG_DIR)
-ppo.learn(6_000_000, tb_log_name=EXP_NAME, callback=eval_cb)
-ppo.save(os.path.join("models", run_name))
+def train_ppo():
+    # ppo = PPO.load("models/model_2_me.zip")
+    # ppo.env = env
+    ppo = PPO("MultiInputPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=TB_LOG_DIR)
+    ppo.learn(6_000_000, tb_log_name=EXP_NAME, callback=eval_cb)
+    ppo.save(os.path.join("models", run_name))
 
-print(test(env, ppo, render=True))
+    print(test(env, ppo, render=True))
+
+def train_recurrent_ppo():
+    ppo = RecurrentPPO(MultiInputLstmPolicy, env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=TB_LOG_DIR)
+    ppo.learn(6_000_000, tb_log_name=EXP_NAME, callback=eval_cb)
+    ppo.save(os.path.join("models", run_name))
+
+    print(test(env, ppo, render=True))
+
+train_recurrent_ppo()
