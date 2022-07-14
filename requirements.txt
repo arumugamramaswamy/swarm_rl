@@ -1,3 +1,4 @@
-stable-baselines3 @ git+https://github.com/arumugamramaswamy/stable-baselines3.git@afbd92ea2faa01da799fc9a591c25918f3759904
+stable-baselines3 @ git+https://github.com/arumugamramaswamy/stable-baselines3.git@2f21971bbc98faca5d4d1074968a2bc06ec6da28
+sb3_contrib @ git+https://github.com/Stable-Baselines-Team/stable-baselines3-contrib@c9d621b816a5192d8537c4de987c4d243bd39083
 gym==0.22.0
 PettingZoo==1.15.0
