@@ -19,13 +19,7 @@ class CustomMeanEmbeddingsExtractor(BaseFeaturesExtractor):
         total_concat_size = 0
         for key, subspace in observation_space.spaces.items():
             # The observation key is a vector, flatten it if needed
-            extractors[key] = nn.Sequential(
-                nn.Linear(
-                    subspace.shape[-1],
-                    embedding_size,
-                ),
-                nn.ReLU()
-            )
+            extractors[key] = Mlp(subspace.shape[-1], embedding_size)
             total_concat_size += embedding_size
 
         self.extractors = nn.ModuleDict(extractors)
@@ -60,20 +54,8 @@ class CustomMeanEmbeddingsExtractorV2(BaseFeaturesExtractor):
         for key, subspace in observation_space.spaces.items():
             # The observation key is a vector, flatten it if needed
             extractors[key] = OrderedDict({
-                "linear":nn.Sequential(
-                    nn.Linear(
-                        subspace.shape[-1],
-                        embedding_size,
-                    ),
-                    nn.ReLU()
-                ),
-                "tanh":nn.Sequential(
-                    nn.Linear(
-                        subspace.shape[-1],
-                        embedding_size,
-                    ),
-                    nn.Tanh()
-                )
+                "linear": Mlp(subspace.shape[-1], embedding_size),
+                "tanh": Mlp(subspace.shape[-1], embedding_size),
             })
             extractors[key] = nn.ModuleDict(extractors[key])
 
@@ -113,13 +95,7 @@ class CustomAttentionMeanEmbeddingsExtractor(BaseFeaturesExtractor):
         total_concat_size = 0
         for key, subspace in observation_space.spaces.items():
             # The observation key is a vector, flatten it if needed
-            extractors[key] = nn.Sequential(
-                nn.Linear(
-                    subspace.shape[-1],
-                    embedding_size,
-                ),
-                nn.ReLU()
-            )
+            extractors[key] = Mlp(subspace.shape[-1], embedding_size)
             total_concat_size += embedding_size
 
         self.extractors = nn.ModuleDict(extractors)
@@ -161,75 +137,76 @@ class CustomAttentionMeanEmbeddingsExtractor(BaseFeaturesExtractor):
         assert result.shape[-1] == self._features_dim
         return result
 
+class Mlp(nn.Module):
+    def __init__(self, input_size, output_size):
+        super().__init__()
+        self._mlp = nn.Sequential(
+            nn.Linear(
+                input_size,
+                output_size,
+            ),
+            nn.ReLU(),
+        )
+    def forward(self, x):
+        return self._mlp(x)
+
+class CustomAttention(nn.Module):
+    def __init__(self, input_size, embedding_size, query_size, num_heads) -> None:
+        super().__init__()
+        self._key_extractor = Mlp(input_size, embedding_size)
+        self._value_extractor = Mlp(input_size, embedding_size)
+        self._attn = nn.MultiheadAttention(
+            query_size,
+            num_heads,
+            kdim=embedding_size,
+            vdim=embedding_size,
+            batch_first=True,
+        )
+
+    def forward(self, x, query):
+        k = self._key_extractor(x)
+        v = self._value_extractor(x)
+        return self._attn(query, k, v)
+    
 class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Dict, keys, embedding_size=16, num_heads=4):
-        # TODO we do not know features-dim here before going over all the items, so put something there. This is dirty!
         super().__init__(observation_space, features_dim=1)
 
         self.keys = keys
-        total_size = 0
 
-        self._embedding_extractor, size = self.create_embedding_extractor(observation_space, embedding_size)
-        total_size += size
+        self._embedding_extractors = nn.ModuleDict({
+            "my_pos": Mlp(observation_space["my_pos"].shape[-1], embedding_size),
+            "my_vel": Mlp(observation_space["my_vel"].shape[-1], embedding_size)
+        })
 
-        self._attn_heads, size = self.create_attention_head(embedding_size, num_heads)
-        total_size += size
-
-        self._features_dim = total_size
-
-    @staticmethod
-    def create_embedding_extractor(observation_space, embedding_size) -> T.Tuple[nn.ModuleDict, int]:
-        embedding_extractor = {}
-        total_size = 0
-        for k, subspace in observation_space.spaces.items():
-            embedding_extractor[k] = nn.Sequential(
-                    nn.Linear(
-                        subspace.shape[-1],
-                        embedding_size,
-                    ),
-                    nn.ReLU()
-            )
-            total_size += embedding_size
-        return nn.ModuleDict(embedding_extractor), total_size
-
-    @staticmethod
-    def create_attention_head(embedding_size, num_heads) -> T.Tuple[nn.ModuleDict, int]:
-        """Compute attention to agents and use this info to compute attention for targets and comm"""
-        attn_heads = {}
-        total_size = 0
-        # compute attention to agents
-        attn_heads["other_pos"] = nn.MultiheadAttention(embedding_size, num_heads, kdim=embedding_size, vdim=embedding_size, batch_first=True)
-
-        # compute attention to targets and comm
-        for key in ["entity_pos", "comm"]:
-            attn_heads[key] = nn.MultiheadAttention(2*embedding_size, num_heads, kdim=embedding_size, vdim=embedding_size, batch_first=True)
-            total_size += embedding_size
-
-        return nn.ModuleDict(attn_heads), total_size
+        self._attn_heads = nn.ModuleDict({
+            "comm": CustomAttention(observation_space["comm"].shape[-1], embedding_size, 2*embedding_size, num_heads),
+            "other_pos": CustomAttention(observation_space["other_pos"].shape[-1], embedding_size, embedding_size, num_heads),
+            "entity_pos": CustomAttention(observation_space["entity_pos"].shape[-1], embedding_size, 2*embedding_size, num_heads),
+        })
+        self._features_dim = embedding_size*7
 
     def forward(self, observations) -> th.Tensor:
         encoded_tensor_dict = {}
 
-        for key, extractor in self._embedding_extractor.items():
+        for key, extractor in self._embedding_extractors.items():
             encoded_tensor_dict[key] = extractor(observations[key])
 
         my_vel = encoded_tensor_dict["my_vel"]
         assert len(my_vel.shape) == 2
 
         weighted_dict = {}
-
-        # compute attention to other agents
         key = "other_pos"
         attn_head = self._attn_heads[key]
         query = th.reshape(my_vel, (my_vel.shape[0], 1, my_vel.shape[-1]))
-        weighted_dict[key], _ = attn_head(query, encoded_tensor_dict[key], encoded_tensor_dict[key])
+        weighted_dict[key], _ = attn_head(observations[key], query)
 
         for key in ["entity_pos", "comm"]:
             attn_head = self._attn_heads[key]
-            my_vel = th.reshape(my_vel, (my_vel.shape[0], 1, my_vel.shape[-1]))
-            other_agent_attn = weighted_dict["other_pos"]
-            query = th.cat([my_vel, other_agent_attn], dim=-1)
-            weighted_dict[key], _ = attn_head(query, encoded_tensor_dict[key], encoded_tensor_dict[key])
+            query_vel = th.reshape(my_vel, (my_vel.shape[0], 1, my_vel.shape[-1]))
+            query_other_agent_attn = weighted_dict["other_pos"]
+            query = th.cat([query_vel, query_other_agent_attn], dim=-1)
+            weighted_dict[key], _ = self._attn_heads[key](observations[key], query)
 
         for key in weighted_dict:
             weighted_dict[key] = weighted_dict[key].squeeze(dim=-2)
