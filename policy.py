@@ -155,18 +155,18 @@ class CustomAttention(nn.Module):
         super().__init__()
         self._key_extractor = Mlp(input_size, embedding_size)
         self._value_extractor = Mlp(input_size, embedding_size)
+        self._query_extractor = Mlp(query_size, embedding_size)
         self._attn = nn.MultiheadAttention(
-            query_size,
+            embedding_size,
             num_heads,
-            kdim=embedding_size,
-            vdim=embedding_size,
             batch_first=True,
         )
 
     def forward(self, x, query):
         k = self._key_extractor(x)
         v = self._value_extractor(x)
-        return self._attn(query, k, v)
+        q = self._query_extractor(query)
+        return self._attn(q, k, v)
     
 class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Dict, keys, embedding_size=16, num_heads=4):
@@ -184,7 +184,7 @@ class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
             "other_pos": CustomAttention(observation_space["other_pos"].shape[-1], embedding_size, embedding_size, num_heads),
             "entity_pos": CustomAttention(observation_space["entity_pos"].shape[-1], embedding_size, 2*embedding_size, num_heads),
         })
-        self._features_dim = embedding_size*7
+        self._features_dim = embedding_size*5
 
     def forward(self, observations) -> th.Tensor:
         encoded_tensor_dict = {}

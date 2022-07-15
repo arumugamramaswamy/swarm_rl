@@ -65,4 +65,4 @@ def train_recurrent_ppo():
 
     print(test(env, ppo, render=True))
 
-train_recurrent_ppo()
+train_ppo()
