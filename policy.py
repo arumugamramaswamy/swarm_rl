@@ -6,6 +6,8 @@ import gym.spaces
 import torch as th
 import typing as T
 
+OTHER_POS = 0
+ENTITY_POS = 1
 
 class CustomMeanEmbeddingsExtractor(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Dict, keys, mean_keys, embedding_size=16):
@@ -168,6 +170,29 @@ class CustomAttention(nn.Module):
         q = self._query_extractor(query)
         return self._attn(q, k, v)
     
+class SelfAttentionSimpleSpread(BaseFeaturesExtractor):
+    def __init__(self, observation_space: gym.spaces.Dict, embedding_size=16, num_heads=4):
+        super().__init__(observation_space, features_dim=1)
+
+        assert observation_space["other_pos"].shape[-1] == observation_space["entity_pos"].shape[-1]
+        self._attn_head = CustomAttention(observation_space["other_pos"].shape[-1] + 1, embedding_size, 2, num_heads)
+
+        self._features_dim = embedding_size
+    
+    def forward(self, observations) -> th.Tensor:
+
+        other_pos = th.cat([observations["other_pos"], OTHER_POS*th.ones(observations["other_pos"].shape[:-1] + (1,))], dim=-1)
+        entity_pos = th.cat([observations["entity_pos"], ENTITY_POS*th.ones(observations["entity_pos"].shape[:-1] + (1,))], dim=-1)
+
+        my_vel = observations["my_vel"]
+        query = th.reshape(my_vel, (my_vel.shape[0], 1, my_vel.shape[-1]))
+        input_data = th.cat([other_pos, entity_pos], dim=-2)
+        print(input_data)
+        attn_output, _ = self._attn_head(input_data, query)
+
+        assert attn_output.shape[-1] == self._features_dim
+        return attn_output
+
 class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Dict, keys, embedding_size=16, num_heads=4):
         super().__init__(observation_space, features_dim=1)
@@ -182,7 +207,10 @@ class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
         self._attn_heads = nn.ModuleDict({
             "comm": CustomAttention(observation_space["comm"].shape[-1], embedding_size, 2*embedding_size, num_heads),
             "other_pos": CustomAttention(observation_space["other_pos"].shape[-1], embedding_size, embedding_size, num_heads),
+            # input to query network: embedding of my vel
+
             "entity_pos": CustomAttention(observation_space["entity_pos"].shape[-1], embedding_size, 2*embedding_size, num_heads),
+            # input to query network: concat(embedding of my vel, attn of other_pos)
         })
         self._features_dim = embedding_size*5
 
