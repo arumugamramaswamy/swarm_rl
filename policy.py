@@ -194,6 +194,37 @@ class SelfAttentionSimpleSpread(BaseFeaturesExtractor):
         assert attn_output.shape[-1] == self._features_dim
         return attn_output
 
+class FullSelfAttentionSimpleSpread(BaseFeaturesExtractor):
+    def __init__(self, observation_space: gym.spaces.Dict, keys, embedding_size=64, num_heads=4):
+        super().__init__(observation_space, features_dim=1)
+
+        extractors = {}
+        for key, subspace in observation_space.spaces.items():
+            if key == "comm": continue
+            extractors[key] = Mlp(subspace.shape[-1], embedding_size)
+
+        self.extractors = extractors
+        self._attn_head = CustomAttention(embedding_size, embedding_size, embedding_size, num_heads)
+
+        self._features_dim = embedding_size
+    
+    def forward(self, observations) -> th.Tensor:
+
+        input_data = []
+        for key in self.extractors:
+            extractor = self.extractors[key]
+            extracted = extractor(observations[key])
+            if len(extracted.shape) == 2:
+                extracted = th.reshape(extracted, (extracted.shape[0], 1, extracted.shape[1]))
+            input_data.append(extracted)
+
+        input_data = th.cat(input_data, dim=-2)
+        attn_output, _ = self._attn_head(input_data, input_data)
+        attn_output = th.squeeze(attn_output, dim=-2)
+
+        assert attn_output.shape[-1] == self._features_dim
+        return attn_output
+
 class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Dict, keys, embedding_size=16, num_heads=4):
         super().__init__(observation_space, features_dim=1)
