@@ -195,7 +195,7 @@ class SelfAttentionSimpleSpread(BaseFeaturesExtractor):
         return attn_output
 
 class FullSelfAttentionSimpleSpread(BaseFeaturesExtractor):
-    def __init__(self, observation_space: gym.spaces.Dict, keys, embedding_size=64, num_heads=4):
+    def __init__(self, observation_space: gym.spaces.Dict, embedding_size=64, num_heads=4):
         super().__init__(observation_space, features_dim=1)
 
         extractors = {}
@@ -203,7 +203,7 @@ class FullSelfAttentionSimpleSpread(BaseFeaturesExtractor):
             if key == "comm": continue
             extractors[key] = Mlp(subspace.shape[-1], embedding_size)
 
-        self.extractors = extractors
+        self.extractors = nn.ModuleDict(extractors)
         self._attn_head = CustomAttention(embedding_size, embedding_size, embedding_size, num_heads)
 
         self._features_dim = embedding_size
@@ -220,7 +220,8 @@ class FullSelfAttentionSimpleSpread(BaseFeaturesExtractor):
 
         input_data = th.cat(input_data, dim=-2)
         attn_output, _ = self._attn_head(input_data, input_data)
-        attn_output = th.squeeze(attn_output, dim=-2)
+        attn_output = attn_output.sum(dim=-2)
+        # attn_output = th.squeeze(attn_output, dim=-2)
 
         assert attn_output.shape[-1] == self._features_dim
         return attn_output
