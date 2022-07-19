@@ -5,7 +5,7 @@ from stable_baselines3.common.utils import get_latest_run_id
 from sb3_contrib.ppo_recurrent.ppo_recurrent import RecurrentPPO
 from sb3_contrib.ppo_recurrent.policies import MultiInputLstmPolicy
 
-from policy import CustomAttentionMeanEmbeddingsExtractorSimpleSpread
+from policy import SelfAttentionSimpleSpread
 
 from to_vec_env import to_vec_env
 from viz import test
@@ -27,10 +27,11 @@ env = custom_simple_spread.parallel_env(N=N, local_ratio=0, shuffle=True)
 env = to_vec_env(env)
 
 policy_kwargs = dict(
-    features_extractor_class=CustomAttentionMeanEmbeddingsExtractorSimpleSpread,
+    # features_extractor_class=CustomAttentionMeanEmbeddingsExtractorSimpleSpread,
+    features_extractor_class=SelfAttentionSimpleSpread,
     features_extractor_kwargs=dict(
-        keys=list(env.observation_space.keys()),
-        embedding_size=8
+        # keys=list(env.observation_space.keys()),
+        embedding_size=32
     )
 )
 

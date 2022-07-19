@@ -181,14 +181,15 @@ class SelfAttentionSimpleSpread(BaseFeaturesExtractor):
     
     def forward(self, observations) -> th.Tensor:
 
-        other_pos = th.cat([observations["other_pos"], OTHER_POS*th.ones(observations["other_pos"].shape[:-1] + (1,))], dim=-1)
-        entity_pos = th.cat([observations["entity_pos"], ENTITY_POS*th.ones(observations["entity_pos"].shape[:-1] + (1,))], dim=-1)
+        device = observations["other_pos"].get_device()
+        other_pos = th.cat([observations["other_pos"], OTHER_POS*th.ones(observations["other_pos"].shape[:-1] + (1,), device=device)], dim=-1)
+        entity_pos = th.cat([observations["entity_pos"], ENTITY_POS*th.ones(observations["entity_pos"].shape[:-1] + (1,), device=device)], dim=-1)
 
         my_vel = observations["my_vel"]
         query = th.reshape(my_vel, (my_vel.shape[0], 1, my_vel.shape[-1]))
         input_data = th.cat([other_pos, entity_pos], dim=-2)
-        print(input_data)
         attn_output, _ = self._attn_head(input_data, query)
+        attn_output = th.squeeze(attn_output, dim=-2)
 
         assert attn_output.shape[-1] == self._features_dim
         return attn_output
