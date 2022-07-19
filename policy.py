@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
+from layers import Mlp, CustomAttention
 from torch import nn
+from attention import CrossAttention
 
 import gym.spaces
 import torch as th
@@ -139,36 +141,6 @@ class CustomAttentionMeanEmbeddingsExtractor(BaseFeaturesExtractor):
         assert result.shape[-1] == self._features_dim
         return result
 
-class Mlp(nn.Module):
-    def __init__(self, input_size, output_size):
-        super().__init__()
-        self._mlp = nn.Sequential(
-            nn.Linear(
-                input_size,
-                output_size,
-            ),
-            nn.ReLU(),
-        )
-    def forward(self, x):
-        return self._mlp(x)
-
-class CustomAttention(nn.Module):
-    def __init__(self, input_size, embedding_size, query_size, num_heads) -> None:
-        super().__init__()
-        self._key_extractor = Mlp(input_size, embedding_size)
-        self._value_extractor = Mlp(input_size, embedding_size)
-        self._query_extractor = Mlp(query_size, embedding_size)
-        self._attn = nn.MultiheadAttention(
-            embedding_size,
-            num_heads,
-            batch_first=True,
-        )
-
-    def forward(self, x, query):
-        k = self._key_extractor(x)
-        v = self._value_extractor(x)
-        q = self._query_extractor(query)
-        return self._attn(q, k, v)
     
 class SelfAttentionSimpleSpread(BaseFeaturesExtractor):
     def __init__(self, observation_space: gym.spaces.Dict, embedding_size=16, num_heads=4):
@@ -221,7 +193,23 @@ class FullSelfAttentionSimpleSpread(BaseFeaturesExtractor):
         input_data = th.cat(input_data, dim=-2)
         attn_output, _ = self._attn_head(input_data, input_data)
         attn_output = attn_output.sum(dim=-2)
-        # attn_output = th.squeeze(attn_output, dim=-2)
+
+        assert attn_output.shape[-1] == self._features_dim
+        return attn_output
+
+class CrossAttentionSimpleSpread(BaseFeaturesExtractor):
+    def __init__(self, observation_space: gym.spaces.Dict, embedding_size=16, num_heads=4):
+        super().__init__(observation_space, features_dim=1)
+
+        assert observation_space["other_pos"].shape[-1] == observation_space["entity_pos"].shape[-1]
+        self._cross_attention = CrossAttention(observation_space["other_pos"].shape[-1], embedding_size, observation_space["my_vel"].shape[-1], num_heads)
+        self._features_dim = 2*embedding_size
+    
+    def forward(self, observations) -> th.Tensor:
+
+        my_vel = th.reshape(observations["my_vel"], (observations["my_vel"].shape[0], 1, observations["my_vel"].shape[1]))
+        attn_output = self._cross_attention(observations["other_pos"], observations["entity_pos"], my_vel)
+        attn_output = th.squeeze(attn_output, dim=-2)
 
         assert attn_output.shape[-1] == self._features_dim
         return attn_output
