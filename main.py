@@ -6,6 +6,7 @@ from sb3_contrib.ppo_recurrent.ppo_recurrent import RecurrentPPO
 from sb3_contrib.ppo_recurrent.policies import MultiInputLstmPolicy
 
 from policy import FullSelfAttentionSimpleSpread, CrossAttentionSimpleSpread
+from attention_policy import AttentionPolicyV1
 
 from to_vec_env import to_vec_env
 from viz import test
@@ -28,7 +29,7 @@ env = to_vec_env(env)
 
 policy_kwargs = dict(
     # features_extractor_class=CustomAttentionMeanEmbeddingsExtractorSimpleSpread,
-    features_extractor_class=CrossAttentionSimpleSpread,
+    features_extractor_class=AttentionPolicyV1,
     features_extractor_kwargs=dict(
         # keys=list(env.observation_space.keys()),
         # embedding_size=32
