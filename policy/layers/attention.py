@@ -18,20 +18,14 @@ class CrossAttention(nn.Module):
         self._self_attn1 = SelfAttention(input_size, embedding_size, num_heads)
         self._self_attn2 = SelfAttention(input_size, embedding_size, num_heads)
 
-        self._cross_attn1 = CustomAttention(embedding_size, embedding_size, embedding_size, num_heads)
-        self._cross_attn2 = CustomAttention(embedding_size, embedding_size, embedding_size, num_heads)
-
-        self._final_attn1 = CustomAttention(embedding_size, embedding_size, query_size, num_heads)
-        self._final_attn2 = CustomAttention(embedding_size, embedding_size, query_size, num_heads)
+        self._cross_attn1 = CustomAttention(embedding_size, embedding_size, embedding_size+query_size, num_heads)
+        self._cross_attn2 = CustomAttention(embedding_size, embedding_size, embedding_size+query_size, num_heads)
 
     def forward(self, obs1, obs2, query):
         c1, _ = self._self_attn1(obs1)
         c2, _ = self._self_attn2(obs2)
 
-        m1, _ = self._cross_attn1(c1, c2)
-        m2, _ = self._cross_attn2(c2, c1)
+        m1, _ = self._cross_attn1(c1, th.cat([th.sum(c2, dim=-2).unsqueeze(-2), query], dim=-1))
+        m2, _ = self._cross_attn2(c2, th.cat([th.sum(c1, dim=-2).unsqueeze(-2), query], dim=-1))
 
-        f1, _ = self._final_attn1(m1, query)
-        f2, _ = self._final_attn2(m2, query)
-
-        return th.cat([f1, f2], dim=-1)
+        return th.cat([m1, m2], dim=-1)
