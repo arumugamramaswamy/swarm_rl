@@ -5,13 +5,13 @@ from stable_baselines3.common.utils import get_latest_run_id
 from sb3_contrib.ppo_recurrent.ppo_recurrent import RecurrentPPO
 from sb3_contrib.ppo_recurrent.policies import MultiInputLstmPolicy
 
-from policy import FullSelfAttentionSimpleSpread, CrossAttentionSimpleSpread
-from attention_policy import AttentionPolicyV1
+from policy.policy import FullSelfAttentionSimpleSpread, CrossAttentionSimpleSpread
+from policy.attention_policy import AttentionPolicyV1
 
-from to_vec_env import to_vec_env
+from env.to_vec_env import to_vec_env
 from viz import test
 
-import env as custom_simple_spread
+import env.env as custom_simple_spread
 import os
 
 TB_LOG_DIR = "tb_logs"

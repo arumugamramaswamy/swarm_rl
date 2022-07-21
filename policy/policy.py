@@ -1,8 +1,8 @@
 from collections import OrderedDict
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
-from layers import Mlp, CustomAttention
+from .layers.layers import Mlp, CustomAttention
 from torch import nn
-from attention import CrossAttention
+from .layers.attention import CrossAttention
 
 import gym.spaces
 import torch as th

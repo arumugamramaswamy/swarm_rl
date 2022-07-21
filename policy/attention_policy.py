@@ -1,5 +1,5 @@
 from torch import nn
-from layers import ScaledDotProductAttention, ScaledDotProductAttentionWithExtractors, Mlp
+from .layers.layers import ScaledDotProductAttention, ScaledDotProductAttentionWithExtractors, Mlp
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 import gym

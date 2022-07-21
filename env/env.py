@@ -2,7 +2,7 @@ from pettingzoo.mpe._mpe_utils.simple_env import SimpleEnv, make_env
 from pettingzoo.utils.conversions import parallel_wrapper_fn
 from gym import spaces
 
-from scenario import CustomScenario
+from .scenario import CustomScenario
 
 import numpy as np
 

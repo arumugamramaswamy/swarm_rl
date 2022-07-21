@@ -1,6 +1,6 @@
 from torch import nn
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
-from layers import Mlp, CustomAttention, SelfAttention
+from .layers import Mlp, CustomAttention, SelfAttention
 
 import torch as th
 
