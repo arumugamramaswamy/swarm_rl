@@ -1,3 +1,5 @@
 models/
 tb_logs/
 __pycache__/
+.venv/
+eval/
