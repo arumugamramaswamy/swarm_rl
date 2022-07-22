@@ -12,7 +12,7 @@ eval_env:
     N: 3
     local_ratio: 0
     shuffle: true
-    reward_only_single_agent: true
+    reward_agent_for_closest_landmark: true
 
 eval_cb_kwargs:
   deterministic: true
