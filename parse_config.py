@@ -14,6 +14,16 @@ ALGO_REGISTRY = {
     "ppo": PPO
 }
 
+def build_viz(cfg: ConfigNode, model_path):
+    env = _prep_env(cfg.env)
+    algo_constructor = ALGO_REGISTRY[cfg.algo]
+    algo = algo_constructor.load(model_path, env)
+
+    def viz():
+        test_(env, algo, True)
+
+    return viz
+    
 def parse_config(cfg: ConfigNode, experiment_dir):
     env = _prep_env(cfg.env)
     eval_env = _prep_env(cfg.eval_env)
