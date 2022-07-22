@@ -9,10 +9,11 @@ class CustomScenario(Scenario):
     The reasoning behind this is: having clear information sources will
     allow for better informaiton fusion.
     """
-    def __init__(self, shuffle=False, reward_only_single_agent=False) -> None:
+    def __init__(self, shuffle=False, reward_only_single_agent=False, reward_agent_for_closest_landmark=False) -> None:
         super().__init__()
         self.shuffle=shuffle
         self._reward_only_single_agent = reward_only_single_agent
+        self._reward_agent_for_closest_landmark = reward_agent_for_closest_landmark
 
     def observation(self, agent, world):
         entity_pos = []
@@ -43,6 +44,13 @@ class CustomScenario(Scenario):
             "other_pos": other_pos,
             "comm": comm,
         }
+
+    def reward(self, agent, world):
+        rew = super().reward(agent, world)
+        if self._reward_agent_for_closest_landmark:
+            dists = [np.sqrt(np.sum(np.square(l.state.p_pos - a.state.p_pos))) for l in world.landmarks]
+            rew -= min(dists)
+        return rew
 
     def global_reward(self, world):
         if not self._reward_only_single_agent:
