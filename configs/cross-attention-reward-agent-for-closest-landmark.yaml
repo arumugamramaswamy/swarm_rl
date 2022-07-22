@@ -2,7 +2,7 @@ env:
   env_name: "custom_simple_spread"
   env_kwargs:
     N: 3
-    local_ratio: 0
+    local_ratio: 0.1
     shuffle: true
     reward_agent_for_closest_landmark: true
 
@@ -10,7 +10,7 @@ eval_env:
   env_name: "custom_simple_spread"
   env_kwargs:
     N: 3
-    local_ratio: 0
+    local_ratio: 0.1
     shuffle: true
     reward_agent_for_closest_landmark: true
 
