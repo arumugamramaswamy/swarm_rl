@@ -60,7 +60,6 @@ class CustomScenario(Scenario):
             dist, l, a = heapq.heappop(priority_queue)
             if l in used_l or a in used_a:
                 continue
-            print(dist, l, a)
             rew -= dist
             used_a.add(a)
             used_l.add(l)
