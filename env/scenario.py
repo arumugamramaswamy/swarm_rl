@@ -56,7 +56,7 @@ class CustomScenario(Scenario):
         rew = super().reward(agent, world)
         if self._reward_agent_for_closest_landmark:
             dists = [
-                np.sqrt(np.sum(np.square(l.state.p_pos - a.state.p_pos)))
+                np.sqrt(np.sum(np.square(l.state.p_pos - agent.state.p_pos)))
                 for l in world.landmarks
             ]
             rew -= min(dists)
