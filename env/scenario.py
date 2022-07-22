@@ -1,4 +1,5 @@
 import numpy as np
+import heapq
 from pettingzoo.mpe.scenarios.simple_spread import Scenario
 
 class CustomScenario(Scenario):
@@ -8,9 +9,10 @@ class CustomScenario(Scenario):
     The reasoning behind this is: having clear information sources will
     allow for better informaiton fusion.
     """
-    def __init__(self, shuffle=False) -> None:
+    def __init__(self, shuffle=False, reward_only_single_agent=False) -> None:
         super().__init__()
-        self.shuffle=True
+        self.shuffle=shuffle
+        self._reward_only_single_agent = reward_only_single_agent
 
     def observation(self, agent, world):
         entity_pos = []
@@ -41,3 +43,26 @@ class CustomScenario(Scenario):
             "other_pos": other_pos,
             "comm": comm,
         }
+
+    def global_reward(self, world):
+        if not self._reward_only_single_agent:
+            return super().global_reward(world)
+
+        priority_queue = []
+        for l in world.landmarks:
+            for a in world.agents:
+                heapq.heappush(priority_queue, (np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))), l.name, a.name))
+        
+        rew = 0
+        used_a = set()
+        used_l = set()
+        while priority_queue:
+            dist, l, a = heapq.heappop(priority_queue)
+            if l in used_l or a in used_a:
+                continue
+            print(dist, l, a)
+            rew -= dist
+            used_a.add(a)
+            used_l.add(l)
+            
+        return rew

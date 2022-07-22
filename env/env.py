@@ -41,9 +41,9 @@ class raw_env(CustomSimpleEnv):
       - replace scenario with custom scenario
       - add N to constructor
     """
-    def __init__(self, N=3, shuffle=False, local_ratio=0.5, max_cycles=25, continuous_actions=False):
+    def __init__(self, N=3, shuffle=False, local_ratio=0.5, max_cycles=25, continuous_actions=False, reward_only_single_agent=False):
         assert 0. <= local_ratio <= 1., "local_ratio is a proportion. Must be between 0 and 1."
-        scenario = CustomScenario(shuffle=shuffle)
+        scenario = CustomScenario(shuffle=shuffle, reward_only_single_agent=reward_only_single_agent)
         world = scenario.make_world(N)
         super().__init__(N, scenario, world, max_cycles, continuous_actions, local_ratio)
         self.metadata['name'] = "simple_spread_v2"
