@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 import typing as T
 
+
 class Mlp(nn.Module):
     def __init__(self, input_size, output_size):
         super().__init__()
@@ -15,8 +16,10 @@ class Mlp(nn.Module):
             ),
             nn.Tanh(),
         )
+
     def forward(self, x):
         return self._mlp(x)
+
 
 class CustomAttention(nn.Module):
     def __init__(self, input_size, embedding_size, query_size, num_heads) -> None:
@@ -36,12 +39,14 @@ class CustomAttention(nn.Module):
         q = self._query_extractor(query)
         return self._attn(q, k, v)
 
+
 class SelfAttention(CustomAttention):
     def __init__(self, input_size, embedding_size, num_heads) -> None:
         super().__init__(input_size, embedding_size, input_size, num_heads)
 
     def forward(self, x):
         return super().forward(x, x)
+
 
 class ScaledDotProductAttention(nn.Module):
     """
@@ -60,16 +65,20 @@ class ScaledDotProductAttention(nn.Module):
         - **context**: tensor containing the context vector from attention mechanism.
         - **attn**: tensor containing the attention (alignment) from the encoder outputs.
     """
+
     def __init__(self, dim: int):
         super(ScaledDotProductAttention, self).__init__()
         self.sqrt_dim = np.sqrt(dim)
 
-    def forward(self, query: th.Tensor, key: th.Tensor, value: th.Tensor) -> T.Tuple[th.Tensor, th.Tensor]:
+    def forward(
+        self, query: th.Tensor, key: th.Tensor, value: th.Tensor
+    ) -> T.Tuple[th.Tensor, th.Tensor]:
         score = th.bmm(query, key.transpose(1, 2)) / self.sqrt_dim
 
         attn = F.softmax(score, -1)
         context = th.bmm(attn, value)
         return context, attn
+
 
 class ScaledDotProductAttentionWithExtractors(nn.Module):
     def __init__(self, d_model, q_dim, k_dim, v_dim) -> None:

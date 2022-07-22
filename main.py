@@ -33,7 +33,7 @@ policy_kwargs = dict(
     features_extractor_kwargs=dict(
         # keys=list(env.observation_space.keys()),
         # embedding_size=32
-    )
+    ),
 )
 
 eval_env = custom_simple_spread.parallel_env(N=N, local_ratio=0, shuffle=True)
@@ -46,25 +46,40 @@ eval_callback_kwargs = {
     "deterministic": True,
     "eval_freq": 10000,
     "n_eval_episodes": 100,
-    "render": False
+    "render": False,
 }
 
 eval_cb = EvalCallback(**eval_callback_kwargs)
 
+
 def train_ppo():
     # ppo = PPO.load("models/model_2_me.zip")
     # ppo.env = env
-    ppo = PPO("MultiInputPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=TB_LOG_DIR)
+    ppo = PPO(
+        "MultiInputPolicy",
+        env,
+        policy_kwargs=policy_kwargs,
+        verbose=1,
+        tensorboard_log=TB_LOG_DIR,
+    )
     ppo.learn(6_000_000, tb_log_name=EXP_NAME, callback=eval_cb)
     ppo.save(os.path.join("models", run_name))
 
     print(test(env, ppo, render=True))
+
 
 def train_recurrent_ppo():
-    ppo = RecurrentPPO(MultiInputLstmPolicy, env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=TB_LOG_DIR)
+    ppo = RecurrentPPO(
+        MultiInputLstmPolicy,
+        env,
+        policy_kwargs=policy_kwargs,
+        verbose=1,
+        tensorboard_log=TB_LOG_DIR,
+    )
     ppo.learn(6_000_000, tb_log_name=EXP_NAME, callback=eval_cb)
     ppo.save(os.path.join("models", run_name))
 
     print(test(env, ppo, render=True))
+
 
 train_ppo()

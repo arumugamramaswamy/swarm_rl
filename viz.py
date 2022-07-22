@@ -1,5 +1,6 @@
 import time
 
+
 def test(
     env,
     model,
@@ -27,4 +28,3 @@ def test(
         all_rewards.append(total_reward)
 
     return all_rewards
-

@@ -2,16 +2,23 @@ import numpy as np
 import heapq
 from pettingzoo.mpe.scenarios.simple_spread import Scenario
 
+
 class CustomScenario(Scenario):
-    """The main modification here is of the observation method. It is 
+    """The main modification here is of the observation method. It is
     changed from returning a numpy array to a dict of numpy arrays.
 
     The reasoning behind this is: having clear information sources will
     allow for better informaiton fusion.
     """
-    def __init__(self, shuffle=False, reward_only_single_agent=False, reward_agent_for_closest_landmark=False) -> None:
+
+    def __init__(
+        self,
+        shuffle=False,
+        reward_only_single_agent=False,
+        reward_agent_for_closest_landmark=False,
+    ) -> None:
         super().__init__()
-        self.shuffle=shuffle
+        self.shuffle = shuffle
         self._reward_only_single_agent = reward_only_single_agent
         self._reward_agent_for_closest_landmark = reward_agent_for_closest_landmark
 
@@ -48,7 +55,10 @@ class CustomScenario(Scenario):
     def reward(self, agent, world):
         rew = super().reward(agent, world)
         if self._reward_agent_for_closest_landmark:
-            dists = [np.sqrt(np.sum(np.square(l.state.p_pos - a.state.p_pos))) for l in world.landmarks]
+            dists = [
+                np.sqrt(np.sum(np.square(l.state.p_pos - a.state.p_pos)))
+                for l in world.landmarks
+            ]
             rew -= min(dists)
         return rew
 
@@ -59,8 +69,15 @@ class CustomScenario(Scenario):
         priority_queue = []
         for l in world.landmarks:
             for a in world.agents:
-                heapq.heappush(priority_queue, (np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))), l.name, a.name))
-        
+                heapq.heappush(
+                    priority_queue,
+                    (
+                        np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))),
+                        l.name,
+                        a.name,
+                    ),
+                )
+
         rew = 0
         used_a = set()
         used_l = set()
@@ -71,5 +88,5 @@ class CustomScenario(Scenario):
             rew -= dist
             used_a.add(a)
             used_l.add(l)
-            
+
         return rew

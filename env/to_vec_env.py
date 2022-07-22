@@ -2,6 +2,7 @@ from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
 import numpy as np
 
+
 class MarkovVectorEnv(VecEnv):
     def __init__(self, par_env, black_death=False):
         """
@@ -119,6 +120,7 @@ class MarkovVectorEnv(VecEnv):
 
     def seed(self, seed):
         return super().seed(seed=seed)
+
 
 def to_vec_env(env):
     return MarkovVectorEnv(env)
