@@ -21,7 +21,7 @@ eval_cb_kwargs:
 policy_kwargs:
   feature_extractor_name: "CustomAttentionMeanEmbeddingsExtractorSimpleSpread"
   feature_extractor_kwargs:
-    embedding_dim: 16
+    embedding_size: 16
     keys: ["my_vel", "my_pos", "other_pos", "entity_pos", "comm"]
 
 algo: "ppo"
