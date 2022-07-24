@@ -388,25 +388,9 @@ class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
 
         self._attn_heads = nn.ModuleDict(
             {
-                "comm": CustomAttention(
-                    observation_space["comm"].shape[-1],
-                    embedding_size,
-                    2 * embedding_size,
-                    num_heads,
-                ),
-                "other_pos": CustomAttention(
-                    observation_space["other_pos"].shape[-1],
-                    embedding_size,
-                    embedding_size,
-                    num_heads,
-                ),
+                "other_pos": nn.MultiheadAttention(embedding_size, num_heads, kdim=2, vdim=2, batch_first=True),
                 # input to query network: embedding of my vel
-                "entity_pos": CustomAttention(
-                    observation_space["entity_pos"].shape[-1],
-                    embedding_size,
-                    2 * embedding_size,
-                    num_heads,
-                ),
+                "entity_pos": nn.MultiheadAttention(2*embedding_size, num_heads, kdim=2, vdim=2, batch_first=True),
                 # input to query network: concat(embedding of my vel, attn of other_pos)
             }
         )
@@ -425,14 +409,13 @@ class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
         key = "other_pos"
         attn_head = self._attn_heads[key]
         query = th.reshape(my_vel, (my_vel.shape[0], 1, my_vel.shape[-1]))
-        weighted_dict[key], _ = attn_head(observations[key], query)
+        weighted_dict[key], _ = attn_head(query, observations[key], observations[key])
 
-        for key in ["entity_pos", "comm"]:
-            attn_head = self._attn_heads[key]
-            query_vel = th.reshape(my_vel, (my_vel.shape[0], 1, my_vel.shape[-1]))
-            query_other_agent_attn = weighted_dict["other_pos"]
-            query = th.cat([query_vel, query_other_agent_attn], dim=-1)
-            weighted_dict[key], _ = self._attn_heads[key](observations[key], query)
+        key = "entity_pos"
+        attn_head = self._attn_heads[key]
+        query_other_agent_attn = weighted_dict["other_pos"]
+        query = th.cat([query, query_other_agent_attn], dim=-1)
+        weighted_dict[key], _ = self._attn_heads[key](query, observations[key], observations[key])
 
         for key in weighted_dict:
             weighted_dict[key] = weighted_dict[key].squeeze(dim=-2)
