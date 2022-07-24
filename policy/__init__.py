@@ -3,6 +3,7 @@ from .policy import (
     CustomAttentionMeanEmbeddingsExtractorSimpleSpread,
     CrossAttentionSimpleSpread,
     CrossAttentionSimpleSpreadV2,
+    CrossAttentionV2SimpleSpreadV2,
 )
 
 REGISTRY = dict(
@@ -10,4 +11,5 @@ REGISTRY = dict(
     CustomAttentionMeanEmbeddingsExtractorSimpleSpread=CustomAttentionMeanEmbeddingsExtractorSimpleSpread,
     CrossAttentionSimpleSpread=CrossAttentionSimpleSpread,
     CrossAttentionSimpleSpreadV2=CrossAttentionSimpleSpreadV2,
+    CrossAttentionV2SimpleSpreadV2=CrossAttentionV2SimpleSpreadV2,
 )

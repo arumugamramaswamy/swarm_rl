@@ -2,7 +2,7 @@ from collections import OrderedDict
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from .layers.layers import Mlp, CustomAttention
 from torch import nn
-from .layers.attention import CrossAttention
+from .layers.attention import CrossAttention, CrossAttentionV2
 
 import gym.spaces
 import torch as th
@@ -274,15 +274,59 @@ class CrossAttentionSimpleSpread(BaseFeaturesExtractor):
             observations["my_pos"],
             (observations["my_pos"].shape[0], 1, observations["my_pos"].shape[1]),
         )
-        attn_output = self._cross_attention(
+        _, attn_output = self._cross_attention(
             observations["other_pos"],
             observations["entity_pos"],
             th.cat([my_vel, my_pos], dim=-1),
         )
+        attn_output = th.cat(attn_output, dim=-1)
         attn_output = th.squeeze(attn_output, dim=-2)
 
         assert attn_output.shape[-1] == self._features_dim
         return attn_output
+
+class CrossAttentionV2SimpleSpreadV2(BaseFeaturesExtractor):
+    def __init__(
+        self, observation_space: gym.spaces.Dict, embedding_size=16, num_heads=4
+    ):
+        super().__init__(observation_space, features_dim=1)
+
+        assert (
+            observation_space["other_pos"].shape[-1]
+            == observation_space["entity_pos"].shape[-1]
+        )
+        self._cross_attention = CrossAttentionV2(
+            observation_space["other_pos"].shape[-1],
+            embedding_size,
+            observation_space["my_vel"].shape[-1],
+            num_heads,
+        )
+        self._my_vel_extractor = Mlp(observation_space["my_vel"].shape[-1], embedding_size)
+        self._my_pos_extractor = Mlp(observation_space["my_vel"].shape[-1], embedding_size)
+
+        self._features_dim = 4 * embedding_size
+
+    def forward(self, observations) -> th.Tensor:
+
+        my_vel = th.reshape(
+            observations["my_vel"],
+            (observations["my_vel"].shape[0], 1, observations["my_vel"].shape[1]),
+        )
+        attn_output = self._cross_attention(
+            observations["other_pos"],
+            observations["entity_pos"],
+            my_vel,
+        )
+        attn_output = th.cat(attn_output, dim=-1)
+        attn_output = th.squeeze(attn_output, dim=-2)
+
+        my_vel_embedding = self._my_vel_extractor(observations["my_vel"])
+        my_pos_embedding = self._my_pos_extractor(observations["my_pos"])
+
+        output = th.cat([attn_output, my_vel_embedding, my_pos_embedding], dim=-1)
+
+        assert output.shape[-1] == self._features_dim
+        return output
 
 class CrossAttentionSimpleSpreadV2(BaseFeaturesExtractor):
     def __init__(
@@ -311,11 +355,12 @@ class CrossAttentionSimpleSpreadV2(BaseFeaturesExtractor):
             observations["my_vel"],
             (observations["my_vel"].shape[0], 1, observations["my_vel"].shape[1]),
         )
-        attn_output = self._cross_attention(
+        _, attn_output = self._cross_attention(
             observations["other_pos"],
             observations["entity_pos"],
             my_vel,
         )
+        attn_output = th.cat(attn_output, dim=-1)
         attn_output = th.squeeze(attn_output, dim=-2)
 
         my_vel_embedding = self._my_vel_extractor(observations["my_vel"])
