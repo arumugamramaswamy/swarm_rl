@@ -28,3 +28,4 @@ policy_kwargs:
 algo: "ppo"
 
 num_timesteps: 6_000_000
+checkpoint_path: experimenter-results/custom-attn-reward-single-agent_1/final_model.zip
