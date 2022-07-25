@@ -30,13 +30,16 @@ def parse_config(cfg: ConfigNode, experiment_dir):
     eval_cb = _prep_eval_cb(cfg.eval_cb_kwargs, eval_env, experiment_dir)
     policy_kwargs = _prep_policy_kwargs(cfg.policy_kwargs)
     algo_constructor = ALGO_REGISTRY[cfg.algo]
-    algo = algo_constructor(
-        "MultiInputPolicy",
-        env,
-        policy_kwargs=policy_kwargs,
-        verbose=1,
-        tensorboard_log=experiment_dir,
-    )
+    if "checkpoint_path" in cfg:
+        algo = algo_constructor.load(cfg.checkpoint_path, env)
+    else:
+        algo = algo_constructor(
+            "MultiInputPolicy",
+            env,
+            policy_kwargs=policy_kwargs,
+            verbose=1,
+            tensorboard_log=experiment_dir,
+        )
 
     def learn():
         algo.learn(cfg.num_timesteps, callback=eval_cb)
