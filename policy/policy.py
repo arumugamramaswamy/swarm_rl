@@ -381,16 +381,16 @@ class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
 
         self._embedding_extractors = nn.ModuleDict(
             {
-                "my_pos": Mlp(observation_space["my_pos"].shape[-1], embedding_size),
-                "my_vel": Mlp(observation_space["my_vel"].shape[-1], embedding_size),
+                "pos": Mlp(observation_space["my_pos"].shape[-1], embedding_size),
+                "vel": Mlp(observation_space["my_vel"].shape[-1], embedding_size),
             }
         )
 
         self._attn_heads = nn.ModuleDict(
             {
-                "other_pos": nn.MultiheadAttention(embedding_size, num_heads, kdim=2, vdim=2, batch_first=True),
+                "other_pos": nn.MultiheadAttention(embedding_size, num_heads, batch_first=True),
                 # input to query network: embedding of my vel
-                "entity_pos": nn.MultiheadAttention(2*embedding_size, num_heads, kdim=2, vdim=2, batch_first=True),
+                "entity_pos": nn.MultiheadAttention(2*embedding_size, num_heads, kdim=embedding_size, vdim=embedding_size, batch_first=True),
                 # input to query network: concat(embedding of my vel, attn of other_pos)
             }
         )
@@ -399,8 +399,10 @@ class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
     def forward(self, observations) -> th.Tensor:
         encoded_tensor_dict = {}
 
-        for key, extractor in self._embedding_extractors.items():
-            encoded_tensor_dict[key] = extractor(observations[key])
+        encoded_tensor_dict["my_pos"] = self._embedding_extractors["pos"](observations["my_pos"])
+        encoded_tensor_dict["my_vel"] = self._embedding_extractors["vel"](observations["my_vel"])
+        encoded_tensor_dict["other_pos"] = self._embedding_extractors["pos"](observations["other_pos"])
+        encoded_tensor_dict["entity_pos"] = self._embedding_extractors["pos"](observations["entity_pos"])
 
         my_vel = encoded_tensor_dict["my_vel"]
         assert len(my_vel.shape) == 2
@@ -409,13 +411,13 @@ class CustomAttentionMeanEmbeddingsExtractorSimpleSpread(BaseFeaturesExtractor):
         key = "other_pos"
         attn_head = self._attn_heads[key]
         query = th.reshape(my_vel, (my_vel.shape[0], 1, my_vel.shape[-1]))
-        weighted_dict[key], _ = attn_head(query, observations[key], observations[key])
+        weighted_dict[key], _ = attn_head(query, encoded_tensor_dict[key], encoded_tensor_dict[key])
 
         key = "entity_pos"
         attn_head = self._attn_heads[key]
         query_other_agent_attn = weighted_dict["other_pos"]
         query = th.cat([query, query_other_agent_attn], dim=-1)
-        weighted_dict[key], _ = self._attn_heads[key](query, observations[key], observations[key])
+        weighted_dict[key], _ = self._attn_heads[key](query, encoded_tensor_dict[key], encoded_tensor_dict[key])
 
         for key in weighted_dict:
             weighted_dict[key] = weighted_dict[key].squeeze(dim=-2)
