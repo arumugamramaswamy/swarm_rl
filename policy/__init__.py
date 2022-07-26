@@ -6,6 +6,7 @@ from .policy import (
     CrossAttentionV2SimpleSpreadV2,
 )
 from .bootstrapping_policy import BootstrappingFE
+from .attn_selector_policy import AttnSelectorPolicy
 
 REGISTRY = dict(
     AttentionPolicyV1=AttentionPolicyV1,
@@ -14,4 +15,5 @@ REGISTRY = dict(
     CrossAttentionSimpleSpreadV2=CrossAttentionSimpleSpreadV2,
     CrossAttentionV2SimpleSpreadV2=CrossAttentionV2SimpleSpreadV2,
     BootstrappingFE=BootstrappingFE,
+    AttnSelectorPolicy=AttnSelectorPolicy,
 )
