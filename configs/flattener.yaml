@@ -20,7 +20,7 @@ eval_cb_kwargs:
 
 policy_kwargs:
   feature_extractor_name: "Flattener"
-  feature_extractor_kwargs:{}
+  feature_extractor_kwargs: {}
 
 algo: "ppo"
 
