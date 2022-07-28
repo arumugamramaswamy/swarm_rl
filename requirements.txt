@@ -1,4 +1,4 @@
-stable-baselines3 @ git+https://github.com/arumugamramaswamy/stable-baselines3.git@77771d2901722845a9d25591df31cdd5b7127ba1
+stable-baselines3 @ git+https://github.com/arumugamramaswamy/stable-baselines3.git@2b2368c9bc1ba36cd571d123179c486cde544e85
 sb3_contrib @ git+https://github.com/Stable-Baselines-Team/stable-baselines3-contrib@c9d621b816a5192d8537c4de987c4d243bd39083
 python-experimenter @ git+https://github.com/arumugamramaswamy/python-experimenter.git
 gym==0.22.0
