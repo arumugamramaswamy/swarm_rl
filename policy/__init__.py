@@ -7,7 +7,7 @@ from .policy import (
     Flattener
 )
 from .bootstrapping_policy import BootstrappingFE
-from .attn_selector_policy import AttnSelectorPolicy
+from .attn_selector_policy import AttnSelectorPolicy, Selector
 
 REGISTRY = dict(
     AttentionPolicyV1=AttentionPolicyV1,
@@ -18,4 +18,5 @@ REGISTRY = dict(
     BootstrappingFE=BootstrappingFE,
     AttnSelectorPolicy=AttnSelectorPolicy,
     Flattener=Flattener,
+    Selector=Selector,
 )
