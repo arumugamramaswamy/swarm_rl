@@ -28,11 +28,17 @@ def parse_config(cfg: ConfigNode, experiment_dir):
     env = _prep_env(cfg.env)
     eval_env = _prep_env(cfg.eval_env)
     eval_cb = _prep_eval_cb(cfg.eval_cb_kwargs, eval_env, experiment_dir)
-    policy_kwargs = _prep_policy_kwargs(cfg.policy_kwargs)
     algo_constructor = ALGO_REGISTRY[cfg.algo]
     if "checkpoint_path" in cfg:
         algo = algo_constructor.load(cfg.checkpoint_path, env)
+        if "train_only_feature_extractor" in cfg and cfg.train_only_feature_extractor:
+            for params in algo.policy.parameters():
+                params.requires_grad = False
+
+            for params in algo.policy.features_extractor.parameters():
+                params.requires_grad = True
     else:
+        policy_kwargs = _prep_policy_kwargs(cfg.policy_kwargs)
         algo = algo_constructor(
             "MultiInputPolicy",
             env,
