@@ -153,7 +153,7 @@ class Selector(BaseFeaturesExtractor):
         attn, w = self._other_pos_attn(other_pos_embed, other_pos_embed, other_pos_embed)
         other_pos_scores = w.sum(-2)
 
-        ind = other_pos_scores.topk(self._n_select - 1).indices
+        ind = th.multinomial(other_pos_scores, self._n_select - 1)
         top_n_other_pos = other_pos[th.arange(batch_size), ind.transpose(0,1)].transpose(0,1)
         return top_n_other_pos
 
@@ -162,6 +162,6 @@ class Selector(BaseFeaturesExtractor):
         _, w = self._target_pos_attn(target_pos_embed, target_pos_embed, target_pos_embed)
         target_pos_scores = w.sum(-2)
 
-        ind = target_pos_scores.topk(self._n_select).indices
+        ind = th.multinomial(target_pos_scores, self._n_select)
         top_n_target_pos = target_pos[th.arange(batch_size), ind.transpose(0,1)].transpose(0,1)
         return top_n_target_pos
