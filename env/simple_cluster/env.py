@@ -72,6 +72,13 @@ class CustomSimpleEnv(SimpleEnv):
             self.render_geoms.append(inner_bound)
             self.render_geoms_xform.append(inner_xform)
 
+            far_bound = rendering.make_polygon([(-10, 10), (10,10),(10,-10),(-10,-10)], False)
+            far_bound.set_color(255,0,0)
+            far_xform = rendering.Transform()
+            far_bound.add_attr(far_xform)
+            self.render_geoms.append(far_bound)
+            self.render_geoms_xform.append(far_xform)
+
             # add geoms to viewer
             self.viewer.geoms = []
             for geom in self.render_geoms:
