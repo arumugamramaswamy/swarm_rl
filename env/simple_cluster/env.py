@@ -39,12 +39,14 @@ class CustomSimpleEnv(SimpleEnv):
 
         if self.viewer is not None and self.render_geoms is not None:
             outer_bound = rendering.make_polygon([(-1, 1), (1,1),(1,-1),(-1,-1)], False)
+            outer_bound.set_color(0,0,0)
             outer_xform = rendering.Transform()
             outer_bound.add_attr(outer_xform)
             self.render_geoms.append(outer_bound)
             self.render_geoms_xform.append(outer_xform)
 
             inner_bound = rendering.make_polygon([(-0.9, 0.9), (0.9,0.9),(0.9,-0.9),(-0.9,-0.9)], False)
+            outer_bound.set_color(0,255,0)
             inner_xform = rendering.Transform()
             inner_bound.add_attr(inner_xform)
             self.render_geoms.append(inner_bound)
