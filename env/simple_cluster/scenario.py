@@ -50,6 +50,8 @@ class Scenario(BaseScenario):
             for a in world.agents:
                 if self.is_collision(a, agent):
                     rew -= 1
+        for x in agent.state.p_pos:
+            rew -= bound(x)
         return rew
 
     def global_reward(self, world):
@@ -75,3 +77,10 @@ class Scenario(BaseScenario):
             "my_vel": np.array(agent.state.p_vel, dtype=np.float32),
             "other_pos": other_pos,
         }
+
+def bound(x):
+      if x < 0.9:
+          return 0
+      if x < 1.0:
+          return (x - 0.9) * 10
+      return min(np.exp(2 * x - 2), 10)
