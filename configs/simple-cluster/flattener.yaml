@@ -2,12 +2,14 @@ env:
   env_name: "simple_cluster"
   env_kwargs:
     N: 3
+    local_ratio: 0.7
     shuffle: true
 
 eval_env:
   env_name: "simple_cluster"
   env_kwargs:
     N: 3
+    local_ratio: 0.7
     shuffle: true
 
 eval_cb_kwargs:
