@@ -1,0 +1,25 @@
+env:
+  env_name: "simple_cluster"
+  env_kwargs:
+    N: 3
+    shuffle: true
+
+eval_env:
+  env_name: "simple_cluster"
+  env_kwargs:
+    N: 3
+    shuffle: true
+
+eval_cb_kwargs:
+  deterministic: true
+  eval_freq: 10000
+  n_eval_episodes: 100
+  render: false
+
+policy_kwargs:
+  feature_extractor_name: "Flattener"
+  feature_extractor_kwargs: {}
+
+algo: "ppo"
+
+num_timesteps: 6_000_000

@@ -120,19 +120,24 @@ class AttnSelectorPretrained(BaseFeaturesExtractor):
         
 class Selector(BaseFeaturesExtractor):
     def __init__(
-        self, observation_space: gym.spaces.Dict, n_select, embedding_size=16, num_heads=4
+        self, observation_space: gym.spaces.Dict, n_select, embedding_size=16, num_heads=4, has_target_pos=True
     ):
         super().__init__(observation_space, features_dim=1)
 
+        self.has_target_pos = has_target_pos
         self._n_select = n_select
 
         self._pos_embedding_extractor = Mlp(2, embedding_size)
         self._vel_embedding_extractor = Mlp(2, embedding_size)
 
         self._other_pos_attn = nn.MultiheadAttention(embedding_size, num_heads, batch_first=True)
-        self._target_pos_attn = nn.MultiheadAttention(embedding_size, num_heads, batch_first=True)
 
-        self._features_dim = 2 + 2 + 2 * n_select + 2 * (n_select - 1)
+        if self.has_target_pos:
+            self._target_pos_attn = nn.MultiheadAttention(embedding_size, num_heads, batch_first=True)
+            self._features_dim = 2 + 2 + 2 * n_select + 2 * (n_select - 1)
+        else:
+            self._features_dim = 2 + 2 + 2 * (n_select - 1)
+            
 
     def forward(self, obs) -> th.Tensor:
 
@@ -141,9 +146,13 @@ class Selector(BaseFeaturesExtractor):
         my_vel = obs["my_vel"]
         my_pos = obs["my_pos"]
         other_pos_selected = self._extract_other_pos(obs["other_pos"], batch_size).flatten(1)
-        target_pos_selected = self._extract_target_pos(obs["entity_pos"], batch_size).flatten(1)
 
-        output = th.cat([other_pos_selected, target_pos_selected, my_pos, my_vel], dim=-1)
+        if self.has_target_pos:
+            target_pos_selected = self._extract_target_pos(obs["entity_pos"], batch_size).flatten(1)
+            output = th.cat([other_pos_selected, target_pos_selected, my_pos, my_vel], dim=-1)
+        else:
+            output = th.cat([other_pos_selected, my_pos, my_vel], dim=-1)
+            
 
         assert output.shape[-1] == self._features_dim
         return output
