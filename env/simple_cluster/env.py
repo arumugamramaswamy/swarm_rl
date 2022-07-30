@@ -47,6 +47,17 @@ class CustomSimpleEnv(SimpleEnv):
             # from multiagent._mpe_utils import rendering
             self.render_geoms = []
             self.render_geoms_xform = []
+            for entity in self.world.entities:
+                geom = rendering.make_circle(entity.size)
+                xform = rendering.Transform()
+                if 'agent' in entity.name:
+                    geom.set_color(*entity.color[:3], alpha=0.5)
+                else:
+                    geom.set_color(*entity.color[:3])
+                geom.add_attr(xform)
+                self.render_geoms.append(geom)
+                self.render_geoms_xform.append(xform)
+
             outer_bound = rendering.make_polygon([(-1, 1), (1,1),(1,-1),(-1,-1)], False)
             outer_bound.set_color(0,0,0)
             outer_xform = rendering.Transform()
@@ -60,16 +71,6 @@ class CustomSimpleEnv(SimpleEnv):
             inner_bound.add_attr(inner_xform)
             self.render_geoms.append(inner_bound)
             self.render_geoms_xform.append(inner_xform)
-            for entity in self.world.entities:
-                geom = rendering.make_circle(entity.size)
-                xform = rendering.Transform()
-                if 'agent' in entity.name:
-                    geom.set_color(*entity.color[:3], alpha=0.5)
-                else:
-                    geom.set_color(*entity.color[:3])
-                geom.add_attr(xform)
-                self.render_geoms.append(geom)
-                self.render_geoms_xform.append(xform)
 
             # add geoms to viewer
             self.viewer.geoms = []
