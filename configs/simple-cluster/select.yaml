@@ -10,6 +10,7 @@ eval_env:
   env_kwargs:
     N: 4
     shuffle: true
+    local_ratio: 0.9
 
 eval_cb_kwargs:
   deterministic: true
