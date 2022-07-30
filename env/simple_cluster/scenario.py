@@ -33,7 +33,7 @@ class Scenario(BaseScenario):
             agent.color = np.array([0.35, 0.35, 0.85])
         # set random initial states
         for agent in world.agents:
-            agent.state.p_pos = np_random.uniform(-10, +10, world.dim_p)
+            agent.state.p_pos = np_random.uniform(-1, +1, world.dim_p)
             agent.state.p_vel = np.zeros(world.dim_p)
             agent.state.c = np.zeros(world.dim_c)
 
