@@ -1,4 +1,4 @@
-from .attention_policy import AttentionPolicyV1
+from .attention_policy import AttentionPolicyV1, AttnV2
 from .policy import (
     CustomAttentionMeanEmbeddingsExtractorSimpleSpread,
     CrossAttentionSimpleSpread,
@@ -19,4 +19,5 @@ REGISTRY = dict(
     AttnSelectorPolicy=AttnSelectorPolicy,
     Flattener=Flattener,
     Selector=Selector,
+    AttnV2=AttnV2,
 )

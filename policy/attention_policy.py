@@ -64,3 +64,30 @@ class AttentionPolicyV1(BaseFeaturesExtractor):
 
         assert attn_output.shape[-1] == self._features_dim
         return attn_output
+
+class AttnV2(BaseFeaturesExtractor):
+    def __init__(
+        self, observation_space: gym.spaces.Dict, embedding_size=16, num_heads=4
+    ):
+        super().__init__(observation_space, features_dim=1)
+
+        self._pos_embedding_extractor = Mlp(2, embedding_size)
+        self._vel_embedding_extractor = Mlp(2, embedding_size)
+
+        self._other_pos_attn = nn.MultiheadAttention(embedding_size, num_heads, batch_first=True)
+
+        self._features_dim = 3 * embedding_size
+
+    def forward(self, obs) -> th.Tensor:
+
+        my_vel = self._vel_embedding_extractor(obs["my_vel"])
+        my_pos = self._pos_embedding_extractor(obs["my_pos"])
+        other_pos = self._pos_embedding_extractor(obs["other_pos"])
+        query = my_vel.unsqueeze(dim=-2)
+
+        context, _ = self._other_pos_attn(query, other_pos, other_pos)
+        context = context.squeeze(-2)
+        output = th.cat([context, my_pos, my_vel], dim=-1)
+
+        assert output.shape[-1] == self._features_dim
+        return output
