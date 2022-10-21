@@ -20,6 +20,7 @@ eval_cb_kwargs:
 
 policy_kwargs:
   feature_extractor_name: "MeanEmbeddingExtractor"
+  feature_extractor_kwargs:
 
 algo: "ppo"
 
