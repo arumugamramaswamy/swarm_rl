@@ -14,7 +14,7 @@ class MeanEmbeddingExtractor(BaseFeaturesExtractor):
         super().__init__(observation_space, features_dim=1)
 
         self._mean_embedding = Mlp(2 + 2, embedding_dim)
-        self._features_dim = 2 * embedding_dim + 2
+        self._features_dim = embedding_dim + 2
 
     def forward(self, observations):
         other_pos = th.tensor(observations["other_pos"])
