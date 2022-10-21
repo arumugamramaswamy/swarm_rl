@@ -8,6 +8,7 @@ from .policy import (
 )
 from .bootstrapping_policy import BootstrappingFE
 from .attn_selector_policy import AttnSelectorPolicy, Selector
+from .me_policy import MeanEmbeddingExtractor
 
 REGISTRY = dict(
     AttentionPolicyV1=AttentionPolicyV1,
@@ -20,4 +21,5 @@ REGISTRY = dict(
     Flattener=Flattener,
     Selector=Selector,
     AttnV2=AttnV2,
+    MeanEmbeddingExtractor=MeanEmbeddingExtractor,
 )

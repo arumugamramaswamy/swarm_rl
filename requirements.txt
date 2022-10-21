@@ -1,5 +1,5 @@
 stable-baselines3 @ git+https://github.com/arumugamramaswamy/stable-baselines3.git@0b3ecd610c9eb5ec1d07d84544aed7ff35ce38bd
 sb3_contrib @ git+https://github.com/Stable-Baselines-Team/stable-baselines3-contrib@c9d621b816a5192d8537c4de987c4d243bd39083
 python-experimenter @ git+https://github.com/arumugamramaswamy/python-experimenter.git
-gym==0.22.0
+gym>=0.21.0
 PettingZoo==1.15.0
