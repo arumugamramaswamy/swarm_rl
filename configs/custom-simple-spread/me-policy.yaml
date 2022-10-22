@@ -19,6 +19,7 @@ eval_cb_kwargs:
   render: false
 
 policy_kwargs:
+  net_arch: []
   feature_extractor_name: "MeanEmbeddingExtractor"
   feature_extractor_kwargs:
 

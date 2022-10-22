@@ -81,7 +81,15 @@ def _prep_policy_kwargs(cfg: ConfigNode):
     feature_extractor_constructor = FEATURE_EXTRACTOR_REGISTRY[
         cfg.feature_extractor_name
     ]
-    return dict(
+    policy_kwargs = dict(cfg)
+    special_kwargs = dict(
         features_extractor_class=feature_extractor_constructor,
         features_extractor_kwargs=cfg.feature_extractor_kwargs,
     )
+    policy_kwargs.update(special_kwargs)
+
+    # Weird bug related to naming in config
+    policy_kwargs.pop("feature_extractor_name")
+    policy_kwargs.pop("feature_extractor_kwargs")
+
+    return policy_kwargs
