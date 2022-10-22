@@ -28,6 +28,7 @@ def parse_config(cfg: ConfigNode, experiment_dir):
     env = _prep_env(cfg.env)
     eval_env = _prep_env(cfg.eval_env)
     eval_cb = _prep_eval_cb(cfg.eval_cb_kwargs, eval_env, experiment_dir)
+    algo_kwargs = cfg.get("algo_kwargs", {})
     algo_constructor = ALGO_REGISTRY[cfg.algo]
     if "checkpoint_path" in cfg:
         algo = algo_constructor.load(cfg.checkpoint_path, env)
@@ -45,6 +46,7 @@ def parse_config(cfg: ConfigNode, experiment_dir):
             policy_kwargs=policy_kwargs,
             verbose=1,
             tensorboard_log=experiment_dir,
+            **algo_kwargs
         )
 
     def learn():
