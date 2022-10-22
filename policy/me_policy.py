@@ -17,13 +17,15 @@ class MeanEmbeddingExtractor(BaseFeaturesExtractor):
         self._features_dim = embedding_dim + 2
 
     def forward(self, observations):
+        device = observations["other_pos"].device
+
         other_pos = th.tensor(observations["other_pos"])
-        other_pos_one_hot = th.zeros((*other_pos.shape[:-1], 2))
+        other_pos_one_hot = th.zeros((*other_pos.shape[:-1], 2), device=device)
         other_pos_one_hot[:, :, -2] = 1
         other_pos = th.cat([other_pos, other_pos_one_hot], dim=-1)
 
         entity_pos = th.tensor(observations["entity_pos"])
-        entity_pos_one_hot = th.zeros((*entity_pos.shape[:-1], 2))
+        entity_pos_one_hot = th.zeros((*entity_pos.shape[:-1], 2), device=device)
         entity_pos_one_hot[:, :, -1] = 1
         entity_pos = th.cat([entity_pos, entity_pos_one_hot], dim=-1)
 
