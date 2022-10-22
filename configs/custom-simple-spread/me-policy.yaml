@@ -14,7 +14,7 @@ eval_env:
 
 eval_cb_kwargs:
   deterministic: true
-  eval_freq: 10000
+  eval_freq: 100000
   n_eval_episodes: 100
   render: false
 
@@ -25,6 +25,7 @@ policy_kwargs:
 
 algo_kwargs:
   ent_coef: 0.01
+  n_steps: 10000
 
 algo: "ppo"
 

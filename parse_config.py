@@ -3,14 +3,14 @@ from env import REGISTRY as ENV_REGISTRY
 from policy import REGISTRY as FEATURE_EXTRACTOR_REGISTRY
 from env.to_vec_env import to_vec_env
 from stable_baselines3.common.callbacks import EvalCallback
-from stable_baselines3 import PPO
+from stable_baselines3 import PPO, A2C
 from viz import test as test_
 
 import os
 
 EVAL_DIR = "eval"
 
-ALGO_REGISTRY = {"ppo": PPO}
+ALGO_REGISTRY = {"ppo": PPO, "a2c": A2C}
 
 
 def build_viz(cfg: ConfigNode, model_path):
