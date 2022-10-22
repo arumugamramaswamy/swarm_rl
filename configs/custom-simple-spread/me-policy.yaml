@@ -23,7 +23,7 @@ policy_kwargs:
   feature_extractor_kwargs:
 
 algo_kwargs:
-  ent_coef: 1
+  ent_coef: 0.01
 
 algo: "ppo"
 
