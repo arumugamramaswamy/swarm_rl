@@ -14,7 +14,7 @@ class Mlp(nn.Module):
                 input_size,
                 output_size,
             ),
-            nn.Tanh(),
+            nn.ReLU(),
         )
 
     def forward(self, x):
