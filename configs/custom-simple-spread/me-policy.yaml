@@ -30,3 +30,4 @@ algo_kwargs:
 algo: "ppo"
 
 num_timesteps: 25_000_000
+checkpoint_path: experimenter-results/me-ent-coeff_6/final_model.zip
