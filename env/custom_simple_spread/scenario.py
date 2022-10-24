@@ -64,7 +64,19 @@ class CustomScenario(Scenario):
 
     def global_reward(self, world):
         if not self._reward_only_single_agent:
-            return super().global_reward(world)
+            rew = 0
+            for l in world.landmarks:
+                dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))) for a in world.agents]
+                rew -= min(dists)
+
+            for l in world.landmarks:
+                for a in world.agents:
+                    if self.is_collision(l, a):
+                        break
+                else:
+                    rew -= 1
+
+            return rew
 
         priority_queue = []
         for l in world.landmarks:
